@@ -5,7 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.api.deps import get_db, get_current_user
 from app.services.r2_service import R2Service
 from app.controllers.r2 import genarate_upload_url
-from app.controllers.mail import initialize_mail, process_mail_task
+from app.controllers.mail import initialize_mail, process_mail_task, get_all_mails, get_mail
 from app.models.user_model import User
 
 router = APIRouter()
@@ -37,7 +37,7 @@ async def process_mail(
 # # Endpoint 3: The History (With Dynamic Image Links)
 # @router.get("/", response_model=list[MailResponse])
 # def get_mail_history(
-#     db: Session = Depends(get_session),
+#     db: AsyncSession = Depends(get_db),
 #     current_user = Depends(get_current_user)
 # ):
 #     r2 = R2Service()

@@ -26,7 +26,7 @@ Analyze the provided image and extract the sender and receiver information accur
 - For "From:" or "Sender:" - this is the sender
 
 ### On Failure
-- If you fail to extract the fields due to lack of data or clarity, pass NULL and not an empty string or N/A
+- If you fail to extract the fields due to lack of data or clarity, pass N/A, do not leave it blank or attempt to send null characters
 
 ## Common Patterns on Indian Mail
 

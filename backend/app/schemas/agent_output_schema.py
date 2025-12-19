@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 import re
 
+
 class VisionOutput(BaseModel):
     receiver_name: str = Field(
         description="Full name of the mail recipient. Extract from 'To:' section."
@@ -22,16 +23,24 @@ class VisionOutput(BaseModel):
         description="Exactly 6-digit Indian postal code for the sender. Must be a single pincode, not multiple values."
     )
 
+    @field_validator('*', mode='before')
+    @classmethod
+    def remove_null_bytes(cls, v):
+        """Remove null bytes that PostgreSQL can't handle"""
+        if isinstance(v, str):
+            # Remove null bytes and other problematic characters
+            v = v.replace('\x00', '').replace('\u0000', '')
+        return v
+
     @field_validator('receiver_pincode', 'sender_pincode')
     @classmethod
     def validate_pincode(cls, v: str) -> str:
         if not v or v.strip() == "":
             return ""
         
-        # Remove any whitespace
         v = v.strip()
         
-        # If multiple pincodes detected (comma, slash, space separated), take only the first valid one
+        # If multiple pincodes detected, take only the first valid one
         if ',' in v or '/' in v or ' ' in v:
             parts = re.split(r'[,/\s]+', v)
             for part in parts:
@@ -42,7 +51,6 @@ class VisionOutput(BaseModel):
         
         # Validate single pincode format (exactly 6 digits)
         if not re.match(r'^\d{6}$', v):
-            # Try to extract 6 digits if embedded in text
             match = re.search(r'\d{6}', v)
             if match:
                 return match.group()
@@ -55,4 +63,5 @@ class VisionOutput(BaseModel):
     def clean_string(cls, v: str) -> str:
         if not v:
             return ""
-        return v.strip()
+        # Remove null bytes and strip whitespace
+        return v.replace('\x00', '').replace('\u0000', '').strip()

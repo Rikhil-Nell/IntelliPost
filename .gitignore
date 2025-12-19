@@ -14,3 +14,4 @@ voiceiq.pem
 .vscode
 test data
 test
+set-secrets.ps1

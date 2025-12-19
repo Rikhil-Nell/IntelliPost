@@ -22,7 +22,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: remiscus/lexalytics-backend:latest
+          tags: remiscus/intellipost-backend:latest
       
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -33,16 +33,20 @@ jobs:
           port: 22
           script: |
             echo "Connection successful!"
-            sudo docker pull remiscus/lexalytics-backend:latest
-            sudo docker stop lexalytics-backend || true
-            sudo docker rm lexalytics-backend || true
-            sudo docker run -d --name lexalytics-backend -p 8000:8000 \
+            sudo docker pull remiscus/intellipost-backend:latest
+            sudo docker stop intellipost-backend || true
+            sudo docker rm intellipost-backend || true
+            sudo docker run -d --name intellipost-backend -p 8000:8000 \
               -e PROJECT_NAME="${{ secrets.PROJECT_NAME }}" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-              -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
               -e DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
               -e DATABASE_USER="${{ secrets.DATABASE_USER }}" \
               -e DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
               -e DATABASE_NAME="${{ secrets.DATABASE_NAME }}" \
               -e DATABASE_PORT="${{ secrets.DATABASE_PORT }}" \
-              remiscus/lexalytics-backend:latest
+              -e R2_ACCOUNT_ID="${{ secrets.R2_ACCOUNT_ID }}" \
+              -e R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}" \
+              -e R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}" \
+              -e R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}" \
+              -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+              remiscus/intellipost-backend:latest
