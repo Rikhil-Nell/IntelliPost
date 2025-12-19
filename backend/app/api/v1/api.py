@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-from .routers import login, draft, comment
+from .routers import auth, mail
 
 router = APIRouter()
 
-router.include_router(login.router, prefix="/login", tags=["login"])
-router.include_router(draft.router, prefix="/draft", tags=["draft"])
-router.include_router(comment.router, prefix="/comment", tags=["comment"])
+router.include_router(auth.router, prefix="/auth", tags=["auth"])
+router.include_router(mail.router, prefix="/mails", tags=["mails"])

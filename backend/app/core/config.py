@@ -2,6 +2,8 @@ import os
 from pydantic_core.core_schema import FieldValidationInfo
 from pydantic import PostgresDsn, EmailStr, AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_ai.models.openai import OpenAIModelName, OpenAIChatModelSettings, OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
 from typing import Any
 import secrets
 from enum import Enum
@@ -43,8 +45,26 @@ class Settings(BaseSettings):
             )
         return v
     
+    R2_ACCOUNT_ID: str
+    R2_ACCESS_KEY_ID: str
+    R2_SECRET_ACCESS_KEY: str
+    R2_BUCKET_NAME: str
+
     OPENAI_API_KEY: str
+
+    VISION_MODEL_NAME: OpenAIModelName = "gpt-5"
+    
+    MODEL_TEMPERATURE: float = 0.1
+    MODEL_TOP_P: float = 0.95
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file="../.env")
 
 settings = Settings()
+
+default_model_settings = OpenAIChatModelSettings(
+    temperature=settings.MODEL_TEMPERATURE,
+    top_p=settings.MODEL_TOP_P
+)
+
+openai_provider = OpenAIProvider(api_key=settings.OPENAI_API_KEY)
+vision_model = OpenAIChatModel(model_name=settings.VISION_MODEL_NAME, provider=openai_provider, settings=default_model_settings)
