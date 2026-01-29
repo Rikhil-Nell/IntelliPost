@@ -1,83 +1,103 @@
-# SIH Sentiment Analysis
+# IntelliPost 📬
 
-A FastAPI-based backend system for analyzing sentiment in stakeholder comments on legislative drafts for the Ministry of Corporate Affairs. The system enables users to upload draft documents (PDF), generate AI-powered summaries, and collect comments with automated sentiment analysis.
+> **Postathon Hackathon Project** — Intelligent postal mail processing powered by AI vision
+
+A FastAPI backend for a mobile app that automates postal mail sorting by extracting address information from envelope images using AI vision models and routing them to the appropriate sorting centers.
 
 ## 🚀 Features
 
-- **User Authentication**: Secure JWT-based registration and login system
-- **PDF Processing**: Upload and extract text from legislative draft documents
-- **AI-Powered Summarization**: Generate draft summaries using GPT-4.1 and GPT-5-nano
-- **Sentiment Analysis**: Automated sentiment analysis of stakeholder comments
-- **Batch Processing**: Support for CSV upload of multiple comments
-- **RESTful API**: Complete REST API with proper authentication and validation
-- **Database Management**: PostgreSQL backend with async operations and migrations
+- **AI-Powered Mail Extraction**: Upload envelope/postcard images and automatically extract sender & receiver details (name, address, pincode) using vision AI
+- **Smart Sorting Center Assignment**: Automatically resolves the correct postal sorting division based on the extracted pincode using India Post's API
+- **Pincode Caching**: Intelligent caching of pincode lookups to minimize external API calls
+- **Secure Image Storage**: Cloudflare R2 integration for secure, pre-signed URL-based image uploads
+- **User Authentication**: JWT-based authentication system for secure access
+- **Background Processing**: Async task processing for mail extraction without blocking the API
+- **Processing Status Tracking**: Track mail processing status (Pending → Processing → Completed/Failed)
 
-## 🛠️ Technologies Used
+## 🛠️ Tech Stack
 
 ### Backend Framework
-- **FastAPI**: High-performance Python web framework for building APIs
-- **SQLModel**: ORM and data validation library built on SQLAlchemy and Pydantic
-- **AsyncPG**: Asynchronous PostgreSQL driver for efficient database access
+- **FastAPI** — High-performance async Python API framework
+- **SQLModel** — ORM combining SQLAlchemy + Pydantic for type-safe database models
+- **AsyncPG** — Async PostgreSQL driver for non-blocking database operations
 
-### Database & Migrations
-- **PostgreSQL**: Primary database for storing all application data
-- **Alembic**: Database migrations and schema management
+### AI & Vision
+- **Pydantic AI** — AI agent framework for structured LLM outputs
+- **OpenAI Vision API** — Extracts postal information from envelope images
 
-### AI & ML
-- **pydantic-ai**: Integration with LLMs (OpenAI GPT-4.1, GPT-5-nano)
-- **OpenAI API**: Powers summary generation and sentiment analysis
-- **PyPDF2**: PDF parsing and text extraction
+### Storage & Database
+- **PostgreSQL** — Primary database for users, mail records, and pincode cache
+- **Cloudflare R2** — S3-compatible object storage for envelope images
+- **Alembic** — Database migrations and schema management
 
-### Security & Authentication
-- **Passlib/Bcrypt**: Secure password hashing and verification
-- **JWT (python-jose, pyjwt)**: Authentication via JSON Web Tokens
+### External APIs
+- **India Post Pincode API** — Resolves pincodes to sorting divisions/districts
 
-### Development & Deployment
-- **Docker**: Containerization for reproducible environments
-- **Pydantic**: Data validation and settings management
+### Security
+- **Passlib/Bcrypt** — Secure password hashing
+- **JWT (PyJWT)** — Token-based authentication
+
+### DevOps
+- **Docker** — Containerized deployment
+- **Docker Compose** — Multi-service orchestration
 
 ## 📁 Project Structure
 
 ```
-📁 SIH Sentiment Analysis/
+📁 IntelliPost/
 ├── 📁 backend/
 │   ├── 📁 alembic/                 # Database migrations
 │   │   └── 📁 versions/            # Migration files
 │   ├── 📁 app/
 │   │   ├── 📁 api/                 # API layer
 │   │   │   └── 📁 v1/
-│   │   │       └── 📁 routers/     # API endpoints
-│   │   ├── 📁 controllers/         # Business logic
-│   │   ├── 📁 core/               # Core configuration
-│   │   ├── 📁 crud/               # Database operations
-│   │   ├── 📁 db/                 # Database setup
-│   │   ├── 📁 models/             # Data models
-│   │   ├── 📁 prompts/            # LLM prompt templates
-│   │   ├── 📁 schemas/            # Pydantic schemas
-│   │   └── 📁 utils/              # Utility functions
-│   └── 📄 main.py                 # Application entry point
-├── 📄 Dockerfile                  # Docker configuration
-├── 📄 pyproject.toml              # Project dependencies
-└── 📄 README.md                   # This file
+│   │   │       └── 📁 routers/     # API endpoints (auth, mail)
+│   │   ├── 📁 controllers/         # Business logic (mail processing, R2)
+│   │   ├── 📁 core/                # Config, JWT, security
+│   │   ├── 📁 crud/                # Database CRUD operations
+│   │   ├── 📁 db/                  # Database connection setup
+│   │   ├── 📁 models/              # SQLModel data models
+│   │   ├── 📁 prompts/             # AI agent prompt templates
+│   │   ├── 📁 schemas/             # Pydantic request/response schemas
+│   │   ├── 📁 services/            # Services (AI agent, R2, pincode lookup)
+│   │   └── 📁 utils/               # Utility functions
+│   └── 📄 alembic.ini
+├── 📄 Dockerfile
+├── 📄 docker-compose.yml
+├── 📄 pyproject.toml
+└── 📄 README.md
 ```
 
-## 🏗️ Architecture Overview
+## 🔄 How It Works
 
-### Core Components
+### The Mail Processing Pipeline
 
-- **Models**: SQLModel-based models for Users, Drafts, and Comments with UUID primary keys
-- **Schemas**: Pydantic schemas for request/response validation
-- **CRUD Layer**: Generic and custom CRUD classes for async database operations
-- **Controllers**: Business logic layer handling PDF extraction and LLM calls
-- **Routers**: FastAPI routers organizing endpoints with authentication
-- **Agents**: LLM-powered agents for summarization and sentiment analysis
+```
+1. 📱 Mobile App uploads envelope image
+         ↓
+2. 🔗 Backend generates pre-signed R2 upload URL
+         ↓
+3. 📤 Image uploaded directly to Cloudflare R2
+         ↓
+4. ⚡ Backend triggers background processing task
+         ↓
+5. 🤖 AI Vision extracts: sender/receiver name, address, pincode
+         ↓
+6. 🔍 Pincode API lookup → Sorting division resolved
+         ↓
+7. ✅ Mail record updated with extracted data & sorting center
+```
 
-### Data Flow
+### API Endpoints
 
-1. **Authentication**: JWT-based user authentication for all protected endpoints
-2. **Draft Processing**: PDF upload → Text extraction → AI summarization → Database storage
-3. **Comment Analysis**: Comment submission → Sentiment analysis → Database storage
-4. **Data Retrieval**: Authenticated access to user-scoped drafts and comments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/auth/register` | Register a new user |
+| `POST` | `/api/v1/auth/login` | Login and receive JWT token |
+| `POST` | `/api/v1/mail/generate_upload_url` | Get pre-signed URL for image upload |
+| `POST` | `/api/v1/mail/process` | Trigger mail processing (background task) |
+| `GET`  | `/api/v1/mail/` | Get all processed mails (paginated) |
+| `GET`  | `/api/v1/mail/{mail_id}` | Get specific mail details |
 
 ## 🚀 Getting Started
 
@@ -85,113 +105,108 @@ A FastAPI-based backend system for analyzing sentiment in stakeholder comments o
 
 - Python 3.11+
 - PostgreSQL 12+
-- OpenAI API key
+- OpenAI API key (with vision model access)
+- Cloudflare R2 bucket + credentials
+
+### Environment Variables
+
+Create a `.env` file with the following:
+
+```env
+# App
+PROJECT_NAME=IntelliPost
+MODE=development
+
+# Database
+DATABASE_USER=your_user
+DATABASE_PASSWORD=your_password
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=intellipost
+
+# JWT
+SECRET_KEY=your-secret-key
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# OpenAI
+OPENAI_API_KEY=your-openai-api-key
+
+# Cloudflare R2
+R2_ACCOUNT_ID=your-r2-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key
+R2_SECRET_ACCESS_KEY=your-r2-secret-key
+R2_BUCKET_NAME=your-bucket-name
+```
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd SIH-Sentiment-Analysis
+   cd IntelliPost
    ```
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Install dependencies**
+2. **Install dependencies**
    ```bash
    # Using uv (recommended)
-   uv install
+   uv sync
 
    # Or using pip
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
-4. **Run database migrations**
+3. **Run database migrations**
    ```bash
+   cd backend
    alembic upgrade head
    ```
 
-5. **Start the application**
+4. **Start the application**
    ```bash
-   uvicorn app.main:app --reload
+   uvicorn backend.app.main:app --reload
    ```
 
 ### Docker Setup
 
 ```bash
-# Build and run with Docker
-docker build -t sih-sentiment .
-docker run -p 8000:8000 sih-sentiment
+# Build and run with Docker Compose
+docker-compose up --build
 ```
 
 ## 📚 API Documentation
 
 Once the application is running, visit:
-- **Interactive API docs**: `http://localhost:8000/docs`
-- **ReDoc documentation**: `http://localhost:8000/redoc`
-
-### Key Endpoints
-
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/drafts/` - Upload draft document
-- `GET /api/v1/drafts/` - List user drafts
-- `POST /api/v1/comments/` - Submit comment
-- `POST /api/v1/comments/batch` - Batch upload comments via CSV
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file with the following variables:
-
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost/dbname
-
-# JWT
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# OpenAI
-OPENAI_API_KEY=your-openai-api-key
-
-# Application
-DEBUG=false
-```
-
-### Custom Prompts
-
-Modify prompt templates in the `app/prompts/` directory:
-- `draft_summary.md` - Instructions for draft summarization
-- `sentiment_analysis.md` - Instructions for sentiment analysis
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
 ## 🧪 Testing
 
 ```bash
-# Run tests
-pytest
-
-# Run with coverage
-pytest --cov=app tests/
+pytest test/
 ```
 
-## 🚀 Deployment
+## 📋 Data Models
 
-Deployment instructions will be added based on your target platform (AWS, GCP, Azure, etc.).
+### Mail Record
 
-## 🤝 Contributing
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Unique identifier |
+| `user_id` | UUID | Owner of the mail record |
+| `image_s3_key` | string | R2 storage key for the envelope image |
+| `status` | enum | `PENDING` / `PROCESSING` / `COMPLETED` / `FAILED` |
+| `receiver_name` | string | Extracted recipient name |
+| `receiver_address` | string | Extracted recipient address |
+| `receiver_pincode` | string | 6-digit Indian postal code |
+| `sender_name` | string | Extracted sender name |
+| `sender_address` | string | Extracted sender address |
+| `sender_pincode` | string | 6-digit Indian postal code |
+| `assigned_sorting_center` | string | Postal sorting division |
+| `raw_ai_response` | JSON | Full AI extraction response |
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🏆 Hackathon
+
+Built for **Postathon** — a hackathon focused on innovating postal services in India.
 
 ## 📄 License
 
@@ -199,8 +214,9 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 ## 🙏 Acknowledgments
 
-- Ministry of Corporate Affairs for the project requirements
-- OpenAI for providing the LLM capabilities
+- India Post for the Pincode API
+- OpenAI for vision model capabilities
+- Cloudflare for R2 object storage
 - FastAPI community for the excellent framework
 
 ## 📞 Support
